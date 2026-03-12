@@ -24,7 +24,6 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Syne', sans-serif;
     min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
@@ -189,7 +188,6 @@
     border-radius: 14px;
     font-size: 1rem;
     font-weight: 800;
-    font-family: 'Syne', sans-serif;
     letter-spacing: 3px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -272,7 +270,6 @@
     padding: 8px 18px;
     border-radius: 10px;
     border: none;
-    font-family: 'Syne', sans-serif;
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
@@ -618,7 +615,6 @@
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 800;
-    font-family: 'Syne', sans-serif;
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.15s;
@@ -634,7 +630,6 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 0.85rem;
-    font-family: 'Syne', sans-serif;
     cursor: pointer;
     transition: all 0.15s;
   }
@@ -843,7 +838,7 @@
 <div id="done-screen" style="display:none;">
   <div>
     <div class="done-icon">🌸</div>
-    <h2>HOÀN <span>THÀNH</span></h2>
+    <h2>HOÀN THÀNH</h2>
     <p id="done-summary"></p>
   </div>
   <div class="download-list" id="download-list"></div>
@@ -1037,7 +1032,7 @@
         logoOverlay.style.height = h + 'px';
 
         ctx.drawImage(currentImg, 0, 0, w, h);
-        setPos('br');
+        setPos('tc');
       });
     };
     currentImg.src = URL.createObjectURL(imageFiles[index]);
