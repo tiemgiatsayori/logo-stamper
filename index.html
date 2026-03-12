@@ -334,6 +334,28 @@
     pointer-events: none;
   }
 
+  /* Corner resize handles */
+  .resize-handle {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border: 2px solid rgba(0,0,0,0.6);
+    border-radius: 3px;
+    pointer-events: all;
+    z-index: 20;
+    touch-action: none;
+  }
+
+  .rh-nw { top: -8px;    left: -8px;    transform: translate(-50%,-50%); cursor: nw-resize; }
+  .rh-ne { top: -8px;    right: -8px;   transform: translate( 50%,-50%); cursor: ne-resize; }
+  .rh-sw { bottom: -8px; left: -8px;    transform: translate(-50%, 50%); cursor: sw-resize; }
+  .rh-se { bottom: -8px; right: -8px;   transform: translate( 50%, 50%); cursor: se-resize; }
+
+  @media (max-width: 700px) {
+    .resize-handle { width: 20px; height: 20px; }
+  }
+
   .hint-text {
     position: absolute;
     bottom: 12px;
@@ -683,6 +705,10 @@
         <canvas id="logo-overlay"></canvas>
         <div class="logo-handle" id="logo-handle">
           <img id="logo-preview-img" src="" alt="">
+          <div class="resize-handle rh-nw" data-corner="nw"></div>
+          <div class="resize-handle rh-ne" data-corner="ne"></div>
+          <div class="resize-handle rh-sw" data-corner="sw"></div>
+          <div class="resize-handle rh-se" data-corner="se"></div>
         </div>
       </div>
       <div class="hint-text" id="hint-text">Kéo logo · Chụm 2 ngón để zoom · 2x chạm để reset zoom</div>
@@ -1042,9 +1068,52 @@
     drawLogo();
   }
 
-  logoHandle.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
-  document.addEventListener('mousemove',   e => { if (dragging) applyDragPos(e.clientX, e.clientY); });
-  document.addEventListener('mouseup',     () => { dragging = false; });
+  // ── Corner resize ─────────────────────────────────────────────
+  let resizing         = false;
+  let resizeStartSize  = 20;   // logoSizePct when drag began
+  let resizeStartDiag  = 1;    // half-diagonal of logo at drag start (canvas px)
+
+  function startResize(clientX, clientY) {
+    resizing = true;
+    resizeStartSize = logoSizePct;
+    const { lw, lh } = getLogoDims();
+    resizeStartDiag = Math.hypot(lw / 2, lh / 2);
+  }
+
+  function applyResize(clientX, clientY) {
+    const rect = canvasWrap.getBoundingClientRect();
+    const { cw, ch } = getLogoDims();
+    const cx = logoX * cw;
+    const cy = logoY * ch;
+    const curX = (clientX - rect.left) / viewScale;
+    const curY = (clientY - rect.top)  / viewScale;
+    const dist = Math.hypot(curX - cx, curY - cy);
+    if (dist < 2) return; // ignore near-zero
+    const newSizePct = Math.max(3, Math.min(80, resizeStartSize * dist / resizeStartDiag));
+    logoSizePct = newSizePct;
+    syncSliders('resize');
+    drawLogo();
+  }
+
+  document.querySelectorAll('.resize-handle').forEach(handle => {
+    handle.addEventListener('mousedown', e => {
+      e.stopPropagation(); // prevent triggering drag on logoHandle
+      startResize(e.clientX, e.clientY);
+      e.preventDefault();
+    });
+    handle.addEventListener('touchstart', e => {
+      e.stopPropagation();
+      if (e.touches.length === 1) startResize(e.touches[0].clientX, e.touches[0].clientY);
+      e.preventDefault();
+    }, { passive: false });
+  });
+
+  logoHandle.addEventListener('mousedown', e => { if (!resizing) dragging = true; e.preventDefault(); });
+  document.addEventListener('mousemove', e => {
+    if (resizing) { applyResize(e.clientX, e.clientY); return; }
+    if (dragging) applyDragPos(e.clientX, e.clientY);
+  });
+  document.addEventListener('mouseup', () => { dragging = false; resizing = false; });
 
   // ── Touch: drag + pinch-to-zoom ───────────────────────────────
   let pinchActive     = false;
@@ -1052,7 +1121,7 @@
   let pinchStartScale = 1;
 
   logoHandle.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) dragging = true;
+    if (e.touches.length === 1 && !resizing) dragging = true;
     e.preventDefault();
   }, { passive: false });
 
@@ -1080,6 +1149,11 @@
       e.preventDefault();
       return;
     }
+    if (resizing && e.touches.length === 1) {
+      applyResize(e.touches[0].clientX, e.touches[0].clientY);
+      e.preventDefault();
+      return;
+    }
     if (!dragging || e.touches.length !== 1) return;
     applyDragPos(e.touches[0].clientX, e.touches[0].clientY);
     e.preventDefault();
@@ -1087,7 +1161,7 @@
 
   document.addEventListener('touchend', e => {
     if (e.touches.length < 2) { pinchActive = false; canvasWrap.style.transition = ''; }
-    if (e.touches.length === 0) dragging = false;
+    if (e.touches.length === 0) { dragging = false; resizing = false; }
   });
 
   // Double-tap on canvas area resets zoom
