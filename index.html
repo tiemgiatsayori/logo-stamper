@@ -1193,16 +1193,18 @@
       list.appendChild(item);
     });
 
-    document.getElementById('dl-all-btn').addEventListener('click', () => {
+    document.getElementById('dl-all-btn').onclick = () => {
       results.forEach((r, i) => {
         setTimeout(() => {
           const a = document.createElement('a');
           a.href = r.dataUrl;
           a.download = 'stamped_' + r.name;
+          document.body.appendChild(a);
           a.click();
+          document.body.removeChild(a);
         }, i * 300);
       });
-    });
+    };
   }
 
   function goSetup() {
