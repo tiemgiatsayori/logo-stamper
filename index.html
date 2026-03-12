@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Logo Stamper</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #666;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* SETUP SCREEN */
+  #setup-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    padding-bottom: calc(40px + var(--safe-bottom));
+    gap: 40px;
+  }
+
+  .title-block { text-align: center; }
+
+  .title-block h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+
+  .title-block h1 span { color: var(--accent); }
+
+  .title-block p {
+    margin-top: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.active {
+    border-color: var(--accent);
+    background: #1e1e00;
+  }
+
+  .drop-zone input {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .drop-zone .icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+  .drop-zone h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+  .drop-zone p { font-size: 0.8rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .drop-zone.done { border-color: var(--accent); border-style: solid; }
+
+  .status-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 10px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .options-panel {
+    width: 100%;
+    max-width: 700px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .options-panel h3 {
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .option-row label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    width: 110px;
+    flex-shrink: 0;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+    cursor: pointer;
+  }
+
+  .range-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    width: 45px;
+    text-align: right;
+  }
+
+  .start-btn {
+    width: 100%;
+    max-width: 700px;
+    padding: 18px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+  }
+
+  .start-btn:hover:not(:disabled) {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(232,255,71,0.3);
+  }
+
+  .start-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* EDITOR SCREEN */
+  #editor-screen {
+    display: none;
+    height: 100vh;
+    height: 100dvh;
+    flex-direction: column;
+  }
+
+  .editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .editor-header .left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-info {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .progress-info strong { color: var(--accent); font-size: 1.1rem; }
+
+  .progress-bar-wrap {
+    width: 180px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .editor-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+  .btn-skip {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-skip:hover { color: var(--accent2); border-color: var(--accent2); }
+
+  .btn-save {
+    background: var(--accent);
+    color: #000;
+    font-weight: 800;
+  }
+
+  .btn-save:hover { background: #fff; }
+
+  .btn-finish {
+    background: var(--accent2);
+    color: #fff;
+    font-weight: 800;
+  }
+
+  .btn-finish:hover { background: #ff8c5a; }
+
+  .editor-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .canvas-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: #0a0a0a;
+    position: relative;
+    overflow: hidden;
+    touch-action: none; /* we handle all touch ourselves */
+  }
+
+  .canvas-wrap {
+    position: relative;
+    display: inline-block;
+    cursor: crosshair;
+    user-select: none;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+    transform-origin: center center;
+  }
+
+  #main-canvas { display: block; }
+
+  #logo-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+  }
+
+  .logo-handle {
+    position: absolute;
+    cursor: move;
+    pointer-events: all;
+    transform: translate(-50%, -50%);
+  }
+
+  .logo-handle img { display: block; pointer-events: none; }
+
+  .logo-handle::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 2px dashed var(--accent);
+    border-radius: 4px;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .hint-text {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: rgba(0,0,0,0.75);
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* Zoom level indicator */
+  .zoom-indicator {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0,0,0,0.75);
+    padding: 4px 10px;
+    border-radius: 20px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .zoom-indicator.visible { opacity: 1; }
+
+  /* Zoom reset button */
+  .zoom-reset-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.75);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, color 0.15s, border-color 0.15s;
+    z-index: 10;
+  }
+
+  .zoom-reset-btn:hover { color: var(--text); border-color: var(--text); }
+  .zoom-reset-btn.visible { opacity: 1; pointer-events: all; }
+
+  .editor-sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section h4 {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* MOBILE BOTTOM CONTROLS PANEL */
+  .mobile-controls {
+    display: none;
+    flex-direction: column;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .mobile-controls-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-controls-toggle.open { border-bottom-color: var(--border); }
+
+  .mobile-controls-toggle .toggle-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .toggle-arrow {
+    font-size: 0.75rem;
+    color: var(--muted);
+    transition: transform 0.25s ease;
+    display: inline-block;
+  }
+
+  .mobile-controls-toggle.open .toggle-arrow { transform: rotate(180deg); }
+
+  .mobile-controls-body {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    padding-bottom: calc(12px + var(--safe-bottom));
+  }
+
+  .mobile-controls-body.open { display: flex; }
+
+  .mobile-slider-label {
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .mobile-pos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .mobile-pos-grid .btn-ghost {
+    font-size: 1.2rem;
+    padding: 12px;
+  }
+
+  /* MOBILE ALWAYS-VISIBLE ACTION BAR */
+  .mobile-action-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    padding-bottom: calc(10px + var(--safe-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .mobile-action-bar .btn {
+    flex: 1;
+    text-align: center;
+    padding: 13px;
+    font-size: 0.9rem;
+  }
+
+  /* DONE SCREEN */
+  #done-screen {
+    display: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    padding: 40px 20px;
+    padding-bottom: calc(40px + var(--safe-bottom));
+    text-align: center;
+  }
+
+  #done-screen h2 { font-size: clamp(2rem, 8vw, 3rem); font-weight: 800; }
+  #done-screen h2 span { color: var(--accent); }
+  #done-screen p { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.85rem; }
+
+  .download-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .download-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .download-item .fname {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .download-item a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.78rem;
+    font-family: 'Space Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .download-all-btn {
+    padding: 14px 40px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .download-all-btn:hover { background: #fff; }
+
+  .restart-btn {
+    padding: 12px 32px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .restart-btn:hover { color: var(--text); border-color: var(--text); }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    #setup-screen { gap: 20px; padding: 24px 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
+    .upload-grid { grid-template-columns: 1fr; gap: 12px; }
+    .drop-zone { padding: 28px 20px; }
+    .options-panel { padding: 16px; }
+    .option-row label { width: 95px; font-size: 0.8rem; }
+
+    .editor-header { padding: 10px 12px; gap: 8px; }
+    .progress-bar-wrap { width: 100px; }
+    #filename-label { display: none; }
+    .editor-actions { display: none; }       /* replaced by mobile-action-bar */
+
+    .editor-sidebar { display: none; }       /* replaced by mobile-controls */
+    .mobile-controls { display: flex; }
+    .mobile-action-bar { display: flex; }
+
+    .canvas-area { padding: 10px; }
+    .hint-text { bottom: 8px; font-size: 0.65rem; padding: 4px 10px; }
+  }
+
+  @media (max-width: 380px) {
+    .title-block h1 { letter-spacing: -1px; }
+    .option-row label { width: 78px; font-size: 0.76rem; }
+    .range-val { width: 38px; font-size: 0.74rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="title-block">
+    <h1>LOGO <span>STAMPER</span></h1>
+    <p>// chèn logo vào từng ảnh — tự chọn vị trí</p>
+  </div>
+
+  <div class="upload-grid">
+    <div class="drop-zone" id="images-zone">
+      <input type="file" id="images-input" multiple accept="image/*">
+      <span class="icon">🖼️</span>
+      <h3>Ảnh của bạn</h3>
+      <p>Chọn nhiều ảnh cùng lúc</p>
+      <div id="images-badge" style="display:none" class="status-badge"></div>
+    </div>
+
+    <div class="drop-zone" id="logo-zone">
+      <input type="file" id="logo-input" accept="image/*">
+      <span class="icon">🏷️</span>
+      <h3>File Logo</h3>
+      <p>PNG nền trong suốt tốt nhất</p>
+      <div id="logo-badge" style="display:none" class="status-badge"></div>
+    </div>
+  </div>
+
+  <div class="options-panel">
+    <h3>Cài đặt Logo</h3>
+    <div class="option-row">
+      <label>Kích thước</label>
+      <input type="range" id="logo-size" min="5" max="80" value="20">
+      <span class="range-val" id="size-val">20%</span>
+    </div>
+    <div class="option-row">
+      <label>Độ trong suốt</label>
+      <input type="range" id="logo-opacity" min="10" max="100" value="100">
+      <span class="range-val" id="opacity-val">100%</span>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" disabled>BẮT ĐẦU →</button>
+</div>
+
+<!-- EDITOR SCREEN -->
+<div id="editor-screen" style="display:none; flex-direction:column;">
+  <div class="editor-header">
+    <div class="left">
+      <div class="progress-info">
+        Ảnh <strong id="current-num">1</strong> / <span id="total-num">10</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+    <div id="filename-label" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></div>
+    <div class="editor-actions">
+      <button class="btn btn-skip" id="skip-btn">Bỏ qua</button>
+      <button class="btn btn-save" id="save-btn">Lưu &amp; Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="editor-main">
+    <div class="canvas-area" id="canvas-area">
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="main-canvas"></canvas>
+        <canvas id="logo-overlay"></canvas>
+        <div class="logo-handle" id="logo-handle">
+          <img id="logo-preview-img" src="" alt="">
+        </div>
+      </div>
+      <div class="hint-text" id="hint-text">Kéo logo · Chụm 2 ngón để zoom · 2x chạm để reset zoom</div>
+      <div class="zoom-indicator" id="zoom-indicator"></div>
+      <button class="zoom-reset-btn" id="zoom-reset-btn">Reset zoom ×</button>
+    </div>
+
+    <div class="editor-sidebar">
+      <div class="sidebar-section">
+        <h4>Điều chỉnh</h4>
+        <div class="option-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <label style="width:auto;">Kích thước logo</label>
+          <div style="display:flex;align-items:center;gap:10px;width:100%;">
+            <input type="range" id="live-size" min="5" max="80" value="20" style="flex:1;">
+            <span class="range-val" id="live-size-val">20%</span>
+          </div>
+        </div>
+        <div class="option-row" style="flex-direction:column;align-items:flex-start;gap:8px;margin-top:12px;">
+          <label style="width:auto;">Độ trong suốt</label>
+          <div style="display:flex;align-items:center;gap:10px;width:100%;">
+            <input type="range" id="live-opacity" min="10" max="100" value="85" style="flex:1;">
+            <span class="range-val" id="live-opacity-val">85%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h4>Vị trí nhanh</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <button class="btn btn-ghost" onclick="setPos('tl')" style="font-size:1rem;padding:10px;">↖</button>
+          <button class="btn btn-ghost" onclick="setPos('tc')" style="font-size:1rem;padding:10px;">↑</button>
+          <button class="btn btn-ghost" onclick="setPos('tr')" style="font-size:1rem;padding:10px;">↗</button>
+          <button class="btn btn-ghost" onclick="setPos('ml')" style="font-size:1rem;padding:10px;">←</button>
+          <button class="btn btn-ghost" onclick="setPos('mc')" style="font-size:1rem;padding:10px;">⊕</button>
+          <button class="btn btn-ghost" onclick="setPos('mr')" style="font-size:1rem;padding:10px;">→</button>
+          <button class="btn btn-ghost" onclick="setPos('bl')" style="font-size:1rem;padding:10px;">↙</button>
+          <button class="btn btn-ghost" onclick="setPos('bc')" style="font-size:1rem;padding:10px;">↓</button>
+          <button class="btn btn-ghost" onclick="setPos('br')" style="font-size:1rem;padding:10px;">↘</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h4>Thao tác</h4>
+        <button class="btn btn-finish" id="finish-btn" style="width:100%;margin-bottom:8px;">Hoàn thành tất cả</button>
+        <button class="btn btn-ghost" onclick="goSetup()" style="width:100%;font-size:0.8rem;">← Quay lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile bottom controls (replaces hidden sidebar on small screens) -->
+  <div class="mobile-controls">
+    <div class="mobile-controls-toggle" id="mobile-toggle">
+      <span class="toggle-label">Điều chỉnh &amp; Vị trí</span>
+      <span class="toggle-arrow">▲</span>
+    </div>
+    <div class="mobile-controls-body" id="mobile-controls-body">
+      <div>
+        <div class="mobile-slider-label">Kích thước logo</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="range" id="mobile-size" min="5" max="80" value="20" style="flex:1;">
+          <span class="range-val" id="mobile-size-val">20%</span>
+        </div>
+      </div>
+      <div>
+        <div class="mobile-slider-label">Độ trong suốt</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="range" id="mobile-opacity" min="10" max="100" value="85" style="flex:1;">
+          <span class="range-val" id="mobile-opacity-val">85%</span>
+        </div>
+      </div>
+      <div>
+        <div class="mobile-slider-label">Vị trí nhanh</div>
+        <div class="mobile-pos-grid">
+          <button class="btn btn-ghost" onclick="setPos('tl')">↖</button>
+          <button class="btn btn-ghost" onclick="setPos('tc')">↑</button>
+          <button class="btn btn-ghost" onclick="setPos('tr')">↗</button>
+          <button class="btn btn-ghost" onclick="setPos('ml')">←</button>
+          <button class="btn btn-ghost" onclick="setPos('mc')">⊕</button>
+          <button class="btn btn-ghost" onclick="setPos('mr')">→</button>
+          <button class="btn btn-ghost" onclick="setPos('bl')">↙</button>
+          <button class="btn btn-ghost" onclick="setPos('bc')">↓</button>
+          <button class="btn btn-ghost" onclick="setPos('br')">↘</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-finish" id="mobile-finish-btn" style="flex:1;">Hoàn thành tất cả</button>
+        <button class="btn btn-ghost" onclick="goSetup()" style="padding:10px 14px;font-size:0.78rem;">← Quay lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile always-visible action bar -->
+  <div class="mobile-action-bar">
+    <button class="btn btn-skip" id="mobile-skip-btn">Bỏ qua ảnh này</button>
+    <button class="btn btn-save" id="mobile-save-btn">Lưu &amp; Tiếp →</button>
+  </div>
+</div>
+
+<!-- DONE SCREEN -->
+<div id="done-screen" style="display:none;">
+  <div>
+    <div style="font-size:4rem;">✅</div>
+    <h2>HOÀN <span>THÀNH</span></h2>
+    <p id="done-summary"></p>
+  </div>
+  <div class="download-list" id="download-list"></div>
+  <button class="download-all-btn" id="dl-all-btn">Tải tất cả ảnh</button>
+  <button class="restart-btn" onclick="location.reload()">Làm lại từ đầu</button>
+</div>
+
+<script>
+  // State
+  let imageFiles  = [];
+  let logoFile    = null;
+  let logoImg     = new Image();
+  let currentIndex = 0;
+  let results     = [];
+  let logoSizePct = 20;
+  let logoOpacity = 0.85;
+  let logoX = 0.5, logoY = 0.5;
+  let viewScale   = 1;
+
+  // DOM refs
+  const setupScreen    = document.getElementById('setup-screen');
+  const editorScreen   = document.getElementById('editor-screen');
+  const doneScreen     = document.getElementById('done-screen');
+  const imagesInput    = document.getElementById('images-input');
+  const logoInput      = document.getElementById('logo-input');
+  const startBtn       = document.getElementById('start-btn');
+  const mainCanvas     = document.getElementById('main-canvas');
+  const ctx            = mainCanvas.getContext('2d');
+  const logoOverlay    = document.getElementById('logo-overlay');
+  const octx           = logoOverlay.getContext('2d');
+  const logoHandle     = document.getElementById('logo-handle');
+  const logoPreviewImg = document.getElementById('logo-preview-img');
+  const canvasWrap     = document.getElementById('canvas-wrap');
+  const canvasArea     = document.getElementById('canvas-area');
+  const zoomResetBtn   = document.getElementById('zoom-reset-btn');
+  const zoomIndicator  = document.getElementById('zoom-indicator');
+
+  // ── File inputs ───────────────────────────────────────────────
+  imagesInput.addEventListener('change', e => {
+    imageFiles = Array.from(e.target.files);
+    const badge = document.getElementById('images-badge');
+    badge.textContent = `${imageFiles.length} ảnh đã chọn`;
+    badge.style.display = 'inline-block';
+    document.getElementById('images-zone').classList.add('done');
+    checkReady();
+  });
+
+  logoInput.addEventListener('change', e => {
+    logoFile = e.target.files[0];
+    const badge = document.getElementById('logo-badge');
+    badge.textContent = logoFile.name;
+    badge.style.display = 'inline-block';
+    document.getElementById('logo-zone').classList.add('done');
+    logoImg.src = URL.createObjectURL(logoFile);
+    logoImg.onload = checkReady;
+  });
+
+  // ── Setup sliders ─────────────────────────────────────────────
+  document.getElementById('logo-size').addEventListener('input', e => {
+    document.getElementById('size-val').textContent = e.target.value + '%';
+    logoSizePct = +e.target.value;
+  });
+  document.getElementById('logo-opacity').addEventListener('input', e => {
+    document.getElementById('opacity-val').textContent = e.target.value + '%';
+    logoOpacity = e.target.value / 100;
+  });
+
+  // ── Editor sidebar sliders ────────────────────────────────────
+  document.getElementById('live-size').addEventListener('input', e => {
+    document.getElementById('live-size-val').textContent = e.target.value + '%';
+    logoSizePct = +e.target.value;
+    syncSliders('sidebar');
+    drawLogo();
+  });
+  document.getElementById('live-opacity').addEventListener('input', e => {
+    document.getElementById('live-opacity-val').textContent = e.target.value + '%';
+    logoOpacity = e.target.value / 100;
+    syncSliders('sidebar');
+    drawLogo();
+  });
+
+  // ── Mobile sliders ────────────────────────────────────────────
+  document.getElementById('mobile-size').addEventListener('input', e => {
+    document.getElementById('mobile-size-val').textContent = e.target.value + '%';
+    logoSizePct = +e.target.value;
+    syncSliders('mobile');
+    drawLogo();
+  });
+  document.getElementById('mobile-opacity').addEventListener('input', e => {
+    document.getElementById('mobile-opacity-val').textContent = e.target.value + '%';
+    logoOpacity = e.target.value / 100;
+    syncSliders('mobile');
+    drawLogo();
+  });
+
+  // Keep all slider UIs in sync, skip the source to avoid loops
+  function syncSliders(source) {
+    const sz  = logoSizePct;
+    const op  = Math.round(logoOpacity * 100);
+    if (source !== 'sidebar') {
+      document.getElementById('live-size').value    = sz;
+      document.getElementById('live-opacity').value = op;
+      document.getElementById('live-size-val').textContent    = sz + '%';
+      document.getElementById('live-opacity-val').textContent = op + '%';
+    }
+    if (source !== 'mobile') {
+      document.getElementById('mobile-size').value    = sz;
+      document.getElementById('mobile-opacity').value = op;
+      document.getElementById('mobile-size-val').textContent    = sz + '%';
+      document.getElementById('mobile-opacity-val').textContent = op + '%';
+    }
+  }
+
+  // ── Mobile controls toggle ────────────────────────────────────
+  const mobileToggle       = document.getElementById('mobile-toggle');
+  const mobileControlsBody = document.getElementById('mobile-controls-body');
+  mobileToggle.addEventListener('click', () => {
+    const open = mobileControlsBody.classList.toggle('open');
+    mobileToggle.classList.toggle('open', open);
+  });
+
+  // Mobile action bar delegates to desktop equivalents
+  document.getElementById('mobile-save-btn').addEventListener('click',   () => document.getElementById('save-btn').click());
+  document.getElementById('mobile-skip-btn').addEventListener('click',   () => document.getElementById('skip-btn').click());
+  document.getElementById('mobile-finish-btn').addEventListener('click', () => document.getElementById('finish-btn').click());
+
+  // ── Zoom helpers ──────────────────────────────────────────────
+  function applyZoom(scale) {
+    viewScale = scale;
+    canvasWrap.style.transform = scale === 1 ? '' : `scale(${scale.toFixed(3)})`;
+    const zoomed = scale !== 1;
+    zoomResetBtn.classList.toggle('visible', zoomed);
+    zoomIndicator.classList.toggle('visible', zoomed);
+    zoomIndicator.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function resetZoom() {
+    canvasWrap.style.transition = 'transform 0.2s ease';
+    applyZoom(1);
+    setTimeout(() => { canvasWrap.style.transition = ''; }, 220);
+  }
+
+  zoomResetBtn.addEventListener('click', resetZoom);
+
+  // ── Ready check ───────────────────────────────────────────────
+  function checkReady() {
+    startBtn.disabled = !(imageFiles.length > 0 && logoFile && logoImg.complete);
+  }
+
+  startBtn.addEventListener('click', startEditor);
+
+  function startEditor() {
+    setupScreen.style.display = 'none';
+    editorScreen.style.display = 'flex';
+    document.getElementById('total-num').textContent = imageFiles.length;
+    document.getElementById('live-size').value    = logoSizePct;
+    document.getElementById('live-opacity').value = Math.round(logoOpacity * 100);
+    document.getElementById('live-size-val').textContent    = logoSizePct + '%';
+    document.getElementById('live-opacity-val').textContent = Math.round(logoOpacity * 100) + '%';
+    syncSliders('sidebar');
+    loadImage(0);
+  }
+
+  // ── Image loading & canvas sizing ─────────────────────────────
+  let currentImg = new Image();
+
+  function loadImage(index) {
+    currentIndex = index;
+    document.getElementById('current-num').textContent = index + 1;
+    document.getElementById('progress-fill').style.width = ((index / imageFiles.length) * 100) + '%';
+    document.getElementById('filename-label').textContent = imageFiles[index].name;
+    resetZoom();
+    canvasWrap.style.transition = '';
+
+    currentImg = new Image();
+    currentImg.onload = () => {
+      // Use rAF so the browser has settled the layout after showing the editor
+      requestAnimationFrame(() => {
+        const areaRect = canvasArea.getBoundingClientRect();
+        const padding  = 24;
+        const maxW     = areaRect.width  - padding;
+        const maxH     = areaRect.height - padding;
+
+        let w = currentImg.naturalWidth, h = currentImg.naturalHeight;
+        const scale = Math.min(1, maxW / w, maxH / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+
+        mainCanvas.width  = w;
+        mainCanvas.height = h;
+        logoOverlay.width  = w;
+        logoOverlay.height = h;
+        logoOverlay.style.width  = w + 'px';
+        logoOverlay.style.height = h + 'px';
+
+        ctx.drawImage(currentImg, 0, 0, w, h);
+        setPos('br');
+      });
+    };
+    currentImg.src = URL.createObjectURL(imageFiles[index]);
+  }
+
+  // ── Logo drawing ──────────────────────────────────────────────
+  function getLogoDims() {
+    const cw = mainCanvas.width, ch = mainCanvas.height;
+    const lw = Math.round(cw * logoSizePct / 100);
+    const lh = Math.round(lw * logoImg.height / logoImg.width);
+    return { lw, lh, cw, ch };
+  }
+
+  function drawLogo() {
+    const { lw, lh, cw, ch } = getLogoDims();
+    const px = logoX * cw, py = logoY * ch;
+
+    logoHandle.style.left   = px + 'px';
+    logoHandle.style.top    = py + 'px';
+    logoPreviewImg.style.width  = lw + 'px';
+    logoPreviewImg.style.height = lh + 'px';
+    if (!logoPreviewImg.src || logoPreviewImg.src === window.location.href)
+      logoPreviewImg.src = logoImg.src;
+    logoHandle.style.opacity = logoOpacity;
+
+    octx.clearRect(0, 0, cw, ch);
+  }
+
+  function setPos(pos) {
+    const { lw, lh, cw, ch } = getLogoDims();
+    const pad = 0.02;
+    const hw = (lw / 2) / cw, hh = (lh / 2) / ch;
+    const map = {
+      tl: [hw + pad,       hh + pad      ], tc: [0.5,           hh + pad      ], tr: [1 - hw - pad, hh + pad      ],
+      ml: [hw + pad,       0.5           ], mc: [0.5,           0.5           ], mr: [1 - hw - pad, 0.5           ],
+      bl: [hw + pad,       1 - hh - pad  ], bc: [0.5,           1 - hh - pad  ], br: [1 - hw - pad, 1 - hh - pad  ],
+    };
+    [logoX, logoY] = map[pos];
+    drawLogo();
+  }
+
+  // ── Dragging ──────────────────────────────────────────────────
+  // getBoundingClientRect() reflects visual (post-CSS-transform) dimensions,
+  // so dividing the offset by viewScale converts visual px → canvas px.
+
+  let dragging = false;
+
+  function applyDragPos(clientX, clientY) {
+    const rect = canvasWrap.getBoundingClientRect();
+    const { lw, lh, cw, ch } = getLogoDims();
+    let px = (clientX - rect.left)  / viewScale;
+    let py = (clientY - rect.top) / viewScale;
+    px = Math.max(lw / 2, Math.min(cw - lw / 2, px));
+    py = Math.max(lh / 2, Math.min(ch - lh / 2, py));
+    logoX = px / cw;
+    logoY = py / ch;
+    drawLogo();
+  }
+
+  logoHandle.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+  document.addEventListener('mousemove',   e => { if (dragging) applyDragPos(e.clientX, e.clientY); });
+  document.addEventListener('mouseup',     () => { dragging = false; });
+
+  // ── Touch: drag + pinch-to-zoom ───────────────────────────────
+  let pinchActive     = false;
+  let pinchStartDist  = 0;
+  let pinchStartScale = 1;
+
+  logoHandle.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) dragging = true;
+    e.preventDefault();
+  }, { passive: false });
+
+  canvasArea.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      pinchActive     = true;
+      dragging        = false;
+      pinchStartDist  = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      pinchStartScale = viewScale;
+      canvasWrap.style.transition = 'none';
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (pinchActive && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      applyZoom(Math.max(0.4, Math.min(6, pinchStartScale * dist / pinchStartDist)));
+      e.preventDefault();
+      return;
+    }
+    if (!dragging || e.touches.length !== 1) return;
+    applyDragPos(e.touches[0].clientX, e.touches[0].clientY);
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    if (e.touches.length < 2) { pinchActive = false; canvasWrap.style.transition = ''; }
+    if (e.touches.length === 0) dragging = false;
+  });
+
+  // Double-tap on canvas area resets zoom
+  let lastTap = 0;
+  canvasArea.addEventListener('touchend', e => {
+    if (logoHandle.contains(e.target)) return;
+    const now = Date.now();
+    if (now - lastTap < 280) resetZoom();
+    lastTap = now;
+  });
+
+  // ── Render & export ───────────────────────────────────────────
+  function renderToCanvas() {
+    const out = document.createElement('canvas');
+    out.width  = currentImg.naturalWidth;
+    out.height = currentImg.naturalHeight;
+    const fc = out.getContext('2d');
+    fc.drawImage(currentImg, 0, 0);
+
+    const fw = out.width, fh = out.height;
+    const lw = Math.round(fw * logoSizePct / 100);
+    const lh = Math.round(lw * logoImg.height / logoImg.width);
+    fc.globalAlpha = logoOpacity;
+    fc.drawImage(logoImg, logoX * fw - lw / 2, logoY * fh - lh / 2, lw, lh);
+    fc.globalAlpha = 1;
+    return out.toDataURL('image/jpeg', 0.95);
+  }
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    results.push({ name: imageFiles[currentIndex].name, dataUrl: renderToCanvas() });
+    nextOrDone();
+  });
+
+  document.getElementById('skip-btn').addEventListener('click', nextOrDone);
+
+  document.getElementById('finish-btn').addEventListener('click', () => {
+    results.push({ name: imageFiles[currentIndex].name, dataUrl: renderToCanvas() });
+    showDone();
+  });
+
+  function nextOrDone() {
+    currentIndex + 1 >= imageFiles.length ? showDone() : loadImage(currentIndex + 1);
+  }
+
+  function showDone() {
+    editorScreen.style.display = 'none';
+    doneScreen.style.display   = 'flex';
+    document.getElementById('done-summary').textContent = `${results.length} ảnh đã được xử lý`;
+
+    const list = document.getElementById('download-list');
+    list.innerHTML = '';
+    results.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'download-item';
+      item.innerHTML = `<span class="fname">${r.name}</span><a href="${r.dataUrl}" download="${r.name}">Tải xuống</a>`;
+      list.appendChild(item);
+    });
+
+    document.getElementById('dl-all-btn').addEventListener('click', () => {
+      results.forEach((r, i) => {
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = r.dataUrl;
+          a.download = 'stamped_' + r.name;
+          a.click();
+        }, i * 300);
+      });
+    });
+  }
+
+  function goSetup() {
+    editorScreen.style.display = 'none';
+    setupScreen.style.display  = 'flex';
+  }
+</script>
+</body>
+</html>
