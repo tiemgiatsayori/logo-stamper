@@ -1151,20 +1151,30 @@
   // ── Render & export ───────────────────────────────────────────
   function renderToCanvas() {
     const out = document.createElement('canvas');
-    out.width  = currentImg.naturalWidth;
-    out.height = currentImg.naturalHeight;
+    let w = currentImg.naturalWidth, h = currentImg.naturalHeight;
+    // iOS Safari canvas limit ~16MP — scale down if needed
+    const maxPixels = 16777216;
+    if (w * h > maxPixels) {
+      const scale = Math.sqrt(maxPixels / (w * h));
+      w = Math.floor(w * scale);
+      h = Math.floor(h * scale);
+      console.log('Scaled down to', w, 'x', h, 'for iOS canvas limit');
+    }
+    out.width  = w;
+    out.height = h;
     const fc = out.getContext('2d');
-    fc.drawImage(currentImg, 0, 0);
+    if (!fc) { console.error('Failed to get canvas 2d context'); return Promise.reject('no context'); }
+    fc.drawImage(currentImg, 0, 0, w, h);
 
-    const fw = out.width, fh = out.height;
-    const lw = Math.round(fw * logoSizePct / 100);
+    const lw = Math.round(w * logoSizePct / 100);
     const lh = Math.round(lw * logoImg.height / logoImg.width);
     fc.globalAlpha = logoOpacity;
-    fc.drawImage(logoImg, logoX * fw - lw / 2, logoY * fh - lh / 2, lw, lh);
+    fc.drawImage(logoImg, logoX * w - lw / 2, logoY * h - lh / 2, lw, lh);
     fc.globalAlpha = 1;
-    return new Promise(resolve => {
+    console.log('Canvas:', w, 'x', h, '=', w*h, 'pixels');
+    return new Promise((resolve, reject) => {
       out.toBlob(blob => {
-        if (!blob) { console.error('toBlob returned null'); return; }
+        if (!blob) { console.error('toBlob returned null, canvas:', w, 'x', h); reject('toBlob null'); return; }
         console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
         resolve(blob);
       }, 'image/jpeg', 0.95);
