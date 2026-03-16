@@ -1162,18 +1162,26 @@
     fc.globalAlpha = logoOpacity;
     fc.drawImage(logoImg, logoX * fw - lw / 2, logoY * fh - lh / 2, lw, lh);
     fc.globalAlpha = 1;
-    return out.toDataURL('image/jpeg', 0.95);
+    return new Promise(resolve => {
+      out.toBlob(blob => {
+        if (!blob) { console.error('toBlob returned null'); return; }
+        console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
+        resolve(blob);
+      }, 'image/jpeg', 0.95);
+    });
   }
 
-  document.getElementById('save-btn').addEventListener('click', () => {
-    results.push({ name: imageFiles[currentIndex].name, dataUrl: renderToCanvas() });
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const blob = await renderToCanvas();
+    results.push({ name: imageFiles[currentIndex].name, blob });
     nextOrDone();
   });
 
   document.getElementById('skip-btn').addEventListener('click', nextOrDone);
 
-  document.getElementById('finish-btn').addEventListener('click', () => {
-    results.push({ name: imageFiles[currentIndex].name, dataUrl: renderToCanvas() });
+  document.getElementById('finish-btn').addEventListener('click', async () => {
+    const blob = await renderToCanvas();
+    results.push({ name: imageFiles[currentIndex].name, blob });
     showDone();
   });
 
@@ -1188,23 +1196,37 @@
 
     const list = document.getElementById('download-list');
     list.innerHTML = '';
+
+    function downloadBlob(blob, filename) {
+      console.log('Downloading:', filename, 'size:', blob.size);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
     results.forEach(r => {
       const item = document.createElement('div');
       item.className = 'download-item';
-      item.innerHTML = `<span class="fname">${r.name}</span><a href="${r.dataUrl}" download="${r.name}">Tải xuống</a>`;
+      const fname = document.createElement('span');
+      fname.className = 'fname';
+      fname.textContent = r.name;
+      const btn = document.createElement('a');
+      btn.textContent = 'Tải xuống';
+      btn.href = '#';
+      btn.onclick = (e) => { e.preventDefault(); downloadBlob(r.blob, r.name); };
+      item.appendChild(fname);
+      item.appendChild(btn);
       list.appendChild(item);
     });
 
     document.getElementById('dl-all-btn').onclick = () => {
       results.forEach((r, i) => {
-        setTimeout(() => {
-          const a = document.createElement('a');
-          a.href = r.dataUrl;
-          a.download = 'stamped_' + r.name;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }, i * 300);
+        setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
       });
     };
   }
