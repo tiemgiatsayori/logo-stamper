@@ -895,8 +895,7 @@
 
       <div class="sidebar-section">
         <h4>Thao tác</h4>
-        <button class="btn btn-finish" id="finish-btn" style="width:100%;margin-bottom:8px;">Hoàn thành tất cả</button>
-        <button class="btn btn-ghost" onclick="goSetup()" style="width:100%;font-size:0.78rem;">← Quay lại</button>
+        <button class="btn btn-finish" id="finish-btn" style="width:100%;">Hoàn thành tất cả</button>
       </div>
     </div>
   </div>
@@ -926,10 +925,7 @@
           <span class="range-val" id="mobile-opacity-val">100%</span>
         </div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-finish" id="mobile-finish-btn" style="flex:1;">Hoàn thành tất cả</button>
-        <button class="btn btn-ghost" onclick="goSetup()" style="padding:10px 14px;font-size:0.76rem;">← Quay lại</button>
-      </div>
+      <button class="btn btn-finish" id="mobile-finish-btn" style="width:100%;">Hoàn thành tất cả</button>
     </div>
   </div>
 
@@ -1445,10 +1441,6 @@
     };
   }
 
-  function goSetup() {
-    editorScreen.style.display = 'none';
-    setupScreen.style.display  = 'flex';
-  }
 </script>
 </body>
 </html>
