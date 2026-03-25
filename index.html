@@ -639,6 +639,36 @@
   .restart-btn:hover { color: var(--accent); border-color: var(--accent); }
 
   /* RESPONSIVE */
+  .logo-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .logo-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    padding: 4px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .logo-thumb:hover { border-color: var(--accent2); }
+  .logo-thumb.active { border-color: var(--accent); box-shadow: 0 0 12px rgba(240,173,195,0.3); }
+
   @media (max-width: 700px) {
     #setup-screen { gap: 20px; padding: 24px 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
     .upload-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -686,10 +716,10 @@
     </div>
 
     <div class="drop-zone" id="logo-zone">
-      <input type="file" id="logo-input" accept="image/*">
+      <input type="file" id="logo-input" multiple accept="image/*">
       <span class="icon">🏷️</span>
       <h3>Logo Ohara</h3>
-      <p>PNG nền trong suốt tốt nhất</p>
+      <p>Chọn một hoặc nhiều logo</p>
       <div id="logo-badge" style="display:none" class="status-badge"></div>
     </div>
   </div>
@@ -764,6 +794,11 @@
         </div>
       </div>
 
+      <div class="sidebar-section" id="sidebar-logo-section" style="display:none;">
+        <h4>Chọn Logo</h4>
+        <div class="logo-picker" id="sidebar-logo-picker"></div>
+      </div>
+
       <div class="sidebar-section">
         <h4>Vị trí nhanh</h4>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
@@ -808,6 +843,10 @@
           <span class="range-val" id="mobile-opacity-val">100%</span>
         </div>
       </div>
+      <div id="mobile-logo-section" style="display:none;">
+        <div class="mobile-slider-label">Chọn Logo</div>
+        <div class="logo-picker" id="mobile-logo-picker"></div>
+      </div>
       <div>
         <div class="mobile-slider-label">Vị trí nhanh</div>
         <div class="mobile-pos-grid">
@@ -851,7 +890,9 @@
 <script>
   // State
   let imageFiles   = [];
-  let logoFile     = null;
+  let logoFiles    = [];
+  let logoImages   = [];
+  let activeLogoIndex = 0;
   let logoImg      = new Image();
   let currentIndex = 0;
   let results      = [];
@@ -889,13 +930,26 @@
   });
 
   logoInput.addEventListener('change', e => {
-    logoFile = e.target.files[0];
+    logoFiles = Array.from(e.target.files);
+    logoImages = [];
+    let loaded = 0;
+    logoFiles.forEach((file, i) => {
+      const img = new Image();
+      img.onload = () => {
+        loaded++;
+        if (loaded === logoFiles.length) {
+          logoImg = logoImages[0];
+          activeLogoIndex = 0;
+          checkReady();
+        }
+      };
+      img.src = URL.createObjectURL(file);
+      logoImages.push(img);
+    });
     const badge = document.getElementById('logo-badge');
-    badge.textContent = logoFile.name;
+    badge.textContent = logoFiles.length === 1 ? logoFiles[0].name : `${logoFiles.length} logo đã chọn`;
     badge.style.display = 'inline-block';
     document.getElementById('logo-zone').classList.add('done');
-    logoImg.src = URL.createObjectURL(logoFile);
-    logoImg.onload = checkReady;
   });
 
   // ── Setup sliders ─────────────────────────────────────────────
@@ -985,7 +1039,7 @@
 
   // ── Ready check ───────────────────────────────────────────────
   function checkReady() {
-    startBtn.disabled = !(imageFiles.length > 0 && logoFile && logoImg.complete);
+    startBtn.disabled = !(imageFiles.length > 0 && logoImages.length > 0 && logoImg.complete);
   }
 
   startBtn.addEventListener('click', startEditor);
@@ -999,7 +1053,40 @@
     document.getElementById('live-size-val').textContent    = logoSizePct + '%';
     document.getElementById('live-opacity-val').textContent = Math.round(logoOpacity * 100) + '%';
     syncSliders('sidebar');
+    buildLogoPickers();
     loadImage(0);
+  }
+
+  // ── Logo picker ─────────────────────────────────────────────
+  function buildLogoPickers() {
+    const show = logoImages.length > 1;
+    document.getElementById('sidebar-logo-section').style.display = show ? '' : 'none';
+    document.getElementById('mobile-logo-section').style.display  = show ? '' : 'none';
+    if (!show) return;
+
+    ['sidebar-logo-picker', 'mobile-logo-picker'].forEach(id => {
+      const container = document.getElementById(id);
+      container.innerHTML = '';
+      logoImages.forEach((img, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'logo-thumb' + (i === activeLogoIndex ? ' active' : '');
+        const thumbImg = document.createElement('img');
+        thumbImg.src = img.src;
+        thumb.appendChild(thumbImg);
+        thumb.addEventListener('click', () => selectLogo(i));
+        container.appendChild(thumb);
+      });
+    });
+  }
+
+  function selectLogo(index) {
+    activeLogoIndex = index;
+    logoImg = logoImages[index];
+    logoPreviewImg.src = logoImg.src;
+    drawLogo();
+    document.querySelectorAll('.logo-thumb').forEach((el, i) => {
+      el.classList.toggle('active', i % logoImages.length === index);
+    });
   }
 
   // ── Image loading & canvas sizing ─────────────────────────────
