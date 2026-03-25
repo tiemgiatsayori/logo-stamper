@@ -142,14 +142,6 @@
     padding: 24px;
   }
 
-  .options-panel h3 {
-    font-size: 0.7rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 20px;
-    font-family: 'Space Mono', monospace;
-  }
 
   .option-row {
     display: flex;
@@ -668,13 +660,34 @@
     padding: 24px;
   }
 
-  .default-logos-panel h3 {
+  .collapsible-panel > summary {
     font-size: 0.7rem;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 16px;
     font-family: 'Space Mono', monospace;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .collapsible-panel > summary::-webkit-details-marker { display: none; }
+
+  .collapsible-panel > summary::after {
+    content: '▸';
+    transition: transform 0.2s ease;
+    font-size: 0.75rem;
+  }
+
+  .collapsible-panel[open] > summary::after {
+    transform: rotate(90deg);
+  }
+
+  .collapsible-panel > summary ~ * {
+    margin-top: 16px;
   }
 
   .default-logo-options {
@@ -776,8 +789,8 @@
     </div>
   </div>
 
-  <div class="default-logos-panel">
-    <h3>Logo có sẵn</h3>
+  <details class="default-logos-panel collapsible-panel">
+    <summary>Logo có sẵn</summary>
     <div class="default-logo-options">
       <label class="default-logo-option selected" id="opt-black">
         <input type="checkbox" id="use-black-logo" checked>
@@ -790,10 +803,10 @@
         <span class="logo-name">Ohara Trắng</span>
       </label>
     </div>
-  </div>
+  </details>
 
-  <div class="options-panel">
-    <h3>Cài đặt Logo</h3>
+  <details class="options-panel collapsible-panel">
+    <summary>Cài đặt Logo</summary>
     <div class="option-row">
       <label>Kích thước</label>
       <input type="range" id="logo-size" min="5" max="80" value="24">
@@ -804,7 +817,7 @@
       <input type="range" id="logo-opacity" min="10" max="100" value="100">
       <span class="range-val" id="opacity-val">100%</span>
     </div>
-  </div>
+  </details>
 
   <button class="start-btn" id="start-btn" disabled>BẮT ĐẦU →</button>
 </div>
