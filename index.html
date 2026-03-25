@@ -870,6 +870,11 @@
     <div class="editor-sidebar">
       <div class="sidebar-brand">Ohara Flower</div>
 
+      <div class="sidebar-section" id="sidebar-logo-section" style="display:none;">
+        <h4>Chọn Logo</h4>
+        <div class="logo-picker" id="sidebar-logo-picker"></div>
+      </div>
+
       <div class="sidebar-section">
         <h4>Điều chỉnh</h4>
         <div class="option-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
@@ -888,11 +893,6 @@
         </div>
       </div>
 
-      <div class="sidebar-section" id="sidebar-logo-section" style="display:none;">
-        <h4>Chọn Logo</h4>
-        <div class="logo-picker" id="sidebar-logo-picker"></div>
-      </div>
-
       <div class="sidebar-section">
         <h4>Thao tác</h4>
         <button class="btn btn-finish" id="finish-btn" style="width:100%;margin-bottom:8px;">Hoàn thành tất cả</button>
@@ -908,6 +908,10 @@
       <span class="toggle-arrow">▲</span>
     </div>
     <div class="mobile-controls-body" id="mobile-controls-body">
+      <div id="mobile-logo-section" style="display:none;">
+        <div class="mobile-slider-label">Chọn Logo</div>
+        <div class="logo-picker" id="mobile-logo-picker"></div>
+      </div>
       <div>
         <div class="mobile-slider-label">Kích thước logo</div>
         <div style="display:flex;align-items:center;gap:12px;">
@@ -921,10 +925,6 @@
           <input type="range" id="mobile-opacity" min="10" max="100" value="100" style="flex:1;">
           <span class="range-val" id="mobile-opacity-val">100%</span>
         </div>
-      </div>
-      <div id="mobile-logo-section" style="display:none;">
-        <div class="mobile-slider-label">Chọn Logo</div>
-        <div class="logo-picker" id="mobile-logo-picker"></div>
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-finish" id="mobile-finish-btn" style="flex:1;">Hoàn thành tất cả</button>
