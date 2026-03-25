@@ -930,24 +930,37 @@
   });
 
   logoInput.addEventListener('change', e => {
+    // Revoke old object URLs to prevent memory leaks
+    logoImages.forEach(img => { if (img.src) URL.revokeObjectURL(img.src); });
+
     logoFiles = Array.from(e.target.files);
     logoImages = [];
     let loaded = 0;
+    const total = logoFiles.length;
     logoFiles.forEach((file, i) => {
       const img = new Image();
-      img.onload = () => {
+      const done = () => {
         loaded++;
-        if (loaded === logoFiles.length) {
-          logoImg = logoImages[0];
-          activeLogoIndex = 0;
+        if (loaded === total) {
+          // Filter out any failed images
+          logoImages = logoImages.filter(im => im.complete && im.naturalWidth > 0);
+          if (logoImages.length > 0) {
+            logoImg = logoImages[0];
+            activeLogoIndex = 0;
+          }
           checkReady();
+          // Update badge with actual loaded count
+          const badge = document.getElementById('logo-badge');
+          badge.textContent = logoImages.length === 0 ? 'Lỗi tải logo' : logoImages.length === 1 ? logoFiles[0].name : `${logoImages.length} logo đã chọn`;
         }
       };
+      img.onload = done;
+      img.onerror = done;
       img.src = URL.createObjectURL(file);
       logoImages.push(img);
     });
     const badge = document.getElementById('logo-badge');
-    badge.textContent = logoFiles.length === 1 ? logoFiles[0].name : `${logoFiles.length} logo đã chọn`;
+    badge.textContent = total === 1 ? logoFiles[0].name : `${total} logo đã chọn`;
     badge.style.display = 'inline-block';
     document.getElementById('logo-zone').classList.add('done');
   });
