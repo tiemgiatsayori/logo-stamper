@@ -514,16 +514,6 @@
     font-family: 'Space Mono', monospace;
   }
 
-  .mobile-pos-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-
-  .mobile-pos-grid .btn-ghost {
-    font-size: 1.2rem;
-    padding: 12px;
-  }
 
   /* MOBILE ALWAYS-VISIBLE ACTION BAR */
   .mobile-action-bar {
@@ -878,21 +868,6 @@
       </div>
 
       <div class="sidebar-section">
-        <h4>Vị trí nhanh</h4>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-          <button class="btn btn-ghost" onclick="setPos('tl')" style="font-size:1rem;padding:10px;">↖</button>
-          <button class="btn btn-ghost" onclick="setPos('tc')" style="font-size:1rem;padding:10px;">↑</button>
-          <button class="btn btn-ghost" onclick="setPos('tr')" style="font-size:1rem;padding:10px;">↗</button>
-          <button class="btn btn-ghost" onclick="setPos('ml')" style="font-size:1rem;padding:10px;">←</button>
-          <button class="btn btn-ghost" onclick="setPos('mc')" style="font-size:1rem;padding:10px;">⊕</button>
-          <button class="btn btn-ghost" onclick="setPos('mr')" style="font-size:1rem;padding:10px;">→</button>
-          <button class="btn btn-ghost" onclick="setPos('bl')" style="font-size:1rem;padding:10px;">↙</button>
-          <button class="btn btn-ghost" onclick="setPos('bc')" style="font-size:1rem;padding:10px;">↓</button>
-          <button class="btn btn-ghost" onclick="setPos('br')" style="font-size:1rem;padding:10px;">↘</button>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
         <h4>Thao tác</h4>
         <button class="btn btn-finish" id="finish-btn" style="width:100%;margin-bottom:8px;">Hoàn thành tất cả</button>
         <button class="btn btn-ghost" onclick="goSetup()" style="width:100%;font-size:0.78rem;">← Quay lại</button>
@@ -903,7 +878,7 @@
   <!-- Mobile bottom controls -->
   <div class="mobile-controls">
     <div class="mobile-controls-toggle" id="mobile-toggle">
-      <span class="toggle-label">Điều chỉnh &amp; Vị trí</span>
+      <span class="toggle-label">Điều chỉnh</span>
       <span class="toggle-arrow">▲</span>
     </div>
     <div class="mobile-controls-body" id="mobile-controls-body">
@@ -924,20 +899,6 @@
       <div id="mobile-logo-section" style="display:none;">
         <div class="mobile-slider-label">Chọn Logo</div>
         <div class="logo-picker" id="mobile-logo-picker"></div>
-      </div>
-      <div>
-        <div class="mobile-slider-label">Vị trí nhanh</div>
-        <div class="mobile-pos-grid">
-          <button class="btn btn-ghost" onclick="setPos('tl')">↖</button>
-          <button class="btn btn-ghost" onclick="setPos('tc')">↑</button>
-          <button class="btn btn-ghost" onclick="setPos('tr')">↗</button>
-          <button class="btn btn-ghost" onclick="setPos('ml')">←</button>
-          <button class="btn btn-ghost" onclick="setPos('mc')">⊕</button>
-          <button class="btn btn-ghost" onclick="setPos('mr')">→</button>
-          <button class="btn btn-ghost" onclick="setPos('bl')">↙</button>
-          <button class="btn btn-ghost" onclick="setPos('bc')">↓</button>
-          <button class="btn btn-ghost" onclick="setPos('br')">↘</button>
-        </div>
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-finish" id="mobile-finish-btn" style="flex:1;">Hoàn thành tất cả</button>
