@@ -274,31 +274,47 @@
 
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-  .btn-back {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
+  .btn-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--accent2);
+    color: #fff;
+    font-weight: 800;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.82rem;
   }
 
-  .btn-back:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-nav:hover { background: #e8919e; }
 
-  .btn-back:disabled {
+  .btn-nav:disabled {
     opacity: 0.3;
     pointer-events: none;
   }
 
+  .btn-nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
   .btn-skip {
-    background: var(--surface2);
+    background: transparent;
     color: var(--muted);
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
+    font-weight: 500;
+    font-size: 0.76rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
   }
 
-  .btn-skip:hover { color: var(--accent2); border-color: var(--accent2); }
+  .btn-skip:hover { color: var(--accent2); }
 
   .btn-save {
     background: var(--accent);
     color: #1a0a10;
     font-weight: 800;
+    padding: 8px 20px;
+    border-radius: 10px;
   }
 
   .btn-save:hover { background: #fde6ee; }
@@ -532,9 +548,9 @@
     font-size: 0.88rem;
   }
 
-  .mobile-action-bar .btn-back {
+  .mobile-action-bar .btn-nav {
     flex: 0 0 auto;
-    padding: 13px 16px;
+    padding: 12px 14px;
   }
 
   /* DONE SCREEN */
@@ -780,6 +796,7 @@
     .editor-header { padding: 10px 12px; gap: 8px; }
     .progress-bar-wrap { width: 100px; }
     #filename-label { display: none; }
+    .editor-header .left > .btn-nav { display: none; }
     .editor-actions { display: none; }
 
     .editor-sidebar { display: none; }
@@ -857,6 +874,9 @@
 <div id="editor-screen" style="display:none; flex-direction:column;">
   <div class="editor-header">
     <div class="left">
+      <button class="btn btn-nav" id="back-btn" disabled>
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Quay lại
+      </button>
       <div class="progress-info">
         Ảnh <strong id="current-num">1</strong> / <span id="total-num">10</span>
       </div>
@@ -866,9 +886,10 @@
     </div>
     <div id="filename-label" style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></div>
     <div class="editor-actions">
-      <button class="btn btn-back" id="back-btn" disabled>← Quay lại</button>
       <button class="btn btn-skip" id="skip-btn">Bỏ qua</button>
-      <button class="btn btn-save" id="save-btn">Lưu &amp; Tiếp →</button>
+      <button class="btn btn-nav" id="save-btn">
+        Lưu &amp; Tiếp <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
     </div>
   </div>
 
@@ -950,9 +971,13 @@
 
   <!-- Mobile always-visible action bar -->
   <div class="mobile-action-bar">
-    <button class="btn btn-back" id="mobile-back-btn" disabled>←</button>
+    <button class="btn btn-nav" id="mobile-back-btn" disabled>
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Quay lại
+    </button>
     <button class="btn btn-skip" id="mobile-skip-btn">Bỏ qua</button>
-    <button class="btn btn-save" id="mobile-save-btn">Lưu &amp; Tiếp →</button>
+    <button class="btn btn-nav" id="mobile-save-btn">
+      Lưu &amp; Tiếp <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
   </div>
 </div>
 
