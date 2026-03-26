@@ -1494,6 +1494,10 @@
     editorScreen.style.display = 'none';
     doneScreen.style.display   = 'flex';
     document.getElementById('done-summary').textContent = `${results.length} ảnh đã được xử lý`;
+    // Show share button label on iOS (Web Share API), download label elsewhere
+    const testFiles = results.length ? [new File([results[0].blob], 'test.jpg', { type: 'image/jpeg' })] : [];
+    const useShare = testFiles.length && navigator.canShare && navigator.canShare({ files: testFiles });
+    document.getElementById('dl-all-btn').textContent = useShare ? 'Chia sẻ tất cả ảnh' : 'Tải tất cả ảnh';
 
     const list = document.getElementById('download-list');
     list.innerHTML = '';
@@ -1526,9 +1530,23 @@
     });
 
     document.getElementById('dl-all-btn').onclick = () => {
-      results.forEach((r, i) => {
-        setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
-      });
+      // On iOS, programmatic a.click() in setTimeout is blocked (not a user gesture).
+      // Use Web Share API with files instead — supported on iOS Safari 15.1+ and Chrome iOS.
+      const files = results.map(r => new File([r.blob], 'stamped_' + r.name, { type: r.blob.type }));
+      if (navigator.canShare && navigator.canShare({ files })) {
+        navigator.share({ files }).catch(err => {
+          // User cancelled or share failed — fall back to individual downloads
+          if (err.name !== 'AbortError') {
+            results.forEach((r, i) => {
+              setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
+            });
+          }
+        });
+      } else {
+        results.forEach((r, i) => {
+          setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
+        });
+      }
     };
   }
 
