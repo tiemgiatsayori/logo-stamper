@@ -274,6 +274,19 @@
 
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
+  .btn-back {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-back:hover { color: var(--accent); border-color: var(--accent); }
+
+  .btn-back:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
   .btn-skip {
     background: var(--surface2);
     color: var(--muted);
@@ -517,6 +530,11 @@
     text-align: center;
     padding: 13px;
     font-size: 0.88rem;
+  }
+
+  .mobile-action-bar .btn-back {
+    flex: 0 0 auto;
+    padding: 13px 16px;
   }
 
   /* DONE SCREEN */
@@ -848,6 +866,7 @@
     </div>
     <div id="filename-label" style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></div>
     <div class="editor-actions">
+      <button class="btn btn-back" id="back-btn" disabled>← Quay lại</button>
       <button class="btn btn-skip" id="skip-btn">Bỏ qua</button>
       <button class="btn btn-save" id="save-btn">Lưu &amp; Tiếp →</button>
     </div>
@@ -931,7 +950,8 @@
 
   <!-- Mobile always-visible action bar -->
   <div class="mobile-action-bar">
-    <button class="btn btn-skip" id="mobile-skip-btn">Bỏ qua ảnh này</button>
+    <button class="btn btn-back" id="mobile-back-btn" disabled>←</button>
+    <button class="btn btn-skip" id="mobile-skip-btn">Bỏ qua</button>
     <button class="btn btn-save" id="mobile-save-btn">Lưu &amp; Tiếp →</button>
   </div>
 </div>
@@ -976,6 +996,27 @@
   let logoSizePct  = 24;
   let logoOpacity  = 1.0;
   let logoX = 0.5, logoY = 0.5;
+
+  // Per-image edit state: stores logo position/size/opacity/logo choice per image index
+  const imageEditState = {};
+
+  function saveEditState(index) {
+    imageEditState[index] = {
+      logoX, logoY, logoSizePct, logoOpacity, activeLogoIndex
+    };
+  }
+
+  function restoreEditState(index) {
+    const s = imageEditState[index];
+    if (!s) return;
+    logoX = s.logoX;
+    logoY = s.logoY;
+    logoSizePct = s.logoSizePct;
+    logoOpacity = s.logoOpacity;
+    if (logoImages.length > 0) selectLogo(s.activeLogoIndex);
+    syncSliders();
+    drawLogo();
+  }
   let viewScale    = 1;
 
   // DOM refs
@@ -1125,6 +1166,7 @@
   document.getElementById('mobile-save-btn').addEventListener('click',   () => document.getElementById('save-btn').click());
   document.getElementById('mobile-skip-btn').addEventListener('click',   () => document.getElementById('skip-btn').click());
   document.getElementById('mobile-finish-btn').addEventListener('click', () => document.getElementById('finish-btn').click());
+  document.getElementById('mobile-back-btn').addEventListener('click',   () => document.getElementById('back-btn').click());
 
   // ── Zoom helpers ──────────────────────────────────────────────
   function applyZoom(scale) {
@@ -1207,6 +1249,9 @@
 
   function loadImage(index) {
     currentIndex = index;
+    const isFirst = index <= 0;
+    document.getElementById('back-btn').disabled = isFirst;
+    document.getElementById('mobile-back-btn').disabled = isFirst;
     document.getElementById('current-num').textContent = index + 1;
     document.getElementById('progress-fill').style.width = ((index / imageFiles.length) * 100) + '%';
     document.getElementById('filename-label').textContent = imageFiles[index].name;
@@ -1234,7 +1279,8 @@
         logoOverlay.style.height = h + 'px';
 
         ctx.drawImage(currentImg, 0, 0, w, h);
-        setPos('tc');
+        if (imageEditState[index]) restoreEditState(index);
+        else setPos('tc');
       });
     };
     currentImg.src = URL.createObjectURL(imageFiles[index]);
@@ -1383,15 +1429,33 @@
 
   document.getElementById('save-btn').addEventListener('click', async () => {
     const blob = await renderToCanvas();
-    results.push({ name: imageFiles[currentIndex].name, blob });
+    const name = imageFiles[currentIndex].name;
+    // Upsert: replace existing result for this image, or add new
+    const idx = results.findIndex(r => r.name === name);
+    if (idx !== -1) results[idx] = { name, blob };
+    else results.push({ name, blob });
+    saveEditState(currentIndex);
     nextOrDone();
   });
 
-  document.getElementById('skip-btn').addEventListener('click', nextOrDone);
+  document.getElementById('skip-btn').addEventListener('click', () => {
+    saveEditState(currentIndex);
+    nextOrDone();
+  });
+
+  document.getElementById('back-btn').addEventListener('click', () => {
+    if (currentIndex <= 0) return;
+    saveEditState(currentIndex);
+    loadImage(currentIndex - 1);
+  });
 
   document.getElementById('finish-btn').addEventListener('click', async () => {
     const blob = await renderToCanvas();
-    results.push({ name: imageFiles[currentIndex].name, blob });
+    const name = imageFiles[currentIndex].name;
+    const idx = results.findIndex(r => r.name === name);
+    if (idx !== -1) results[idx] = { name, blob };
+    else results.push({ name, blob });
+    saveEditState(currentIndex);
     showDone();
   });
 
