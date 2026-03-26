@@ -533,6 +533,7 @@
   .mobile-action-bar {
     display: none;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     padding: 10px 16px;
     padding-bottom: calc(10px + var(--safe-bottom));
@@ -797,6 +798,8 @@
     .progress-bar-wrap { width: 100px; }
     #filename-label { display: none; }
     .editor-header .left > .btn-nav { display: none; }
+    .editor-header .left > .btn-skip { margin-left: auto; }
+    .editor-header .left { flex: 1; }
     .editor-actions { display: none; }
 
     .editor-sidebar { display: none; }
@@ -883,10 +886,10 @@
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
+      <button class="btn btn-skip" id="skip-btn">Bỏ qua</button>
     </div>
     <div id="filename-label" style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;"></div>
     <div class="editor-actions">
-      <button class="btn btn-skip" id="skip-btn">Bỏ qua</button>
       <button class="btn btn-nav" id="save-btn">
         Lưu &amp; Tiếp <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
       </button>
@@ -974,7 +977,6 @@
     <button class="btn btn-nav" id="mobile-back-btn" disabled>
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Quay lại
     </button>
-    <button class="btn btn-skip" id="mobile-skip-btn">Bỏ qua</button>
     <button class="btn btn-nav" id="mobile-save-btn">
       Lưu &amp; Tiếp <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
     </button>
@@ -1189,7 +1191,7 @@
   });
 
   document.getElementById('mobile-save-btn').addEventListener('click',   () => document.getElementById('save-btn').click());
-  document.getElementById('mobile-skip-btn').addEventListener('click',   () => document.getElementById('skip-btn').click());
+
   document.getElementById('mobile-finish-btn').addEventListener('click', () => document.getElementById('finish-btn').click());
   document.getElementById('mobile-back-btn').addEventListener('click',   () => document.getElementById('back-btn').click());
 
