@@ -28,7 +28,7 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 LOGO_WHITE = os.path.join(SCRIPT_DIR, "images", "ohara-white.png")
 LOGO_BLACK = os.path.join(SCRIPT_DIR, "images", "ohara-black.png")
 
-LOGO_SIZE_PCT = 18          # logo width as % of image width
+LOGO_SIZE_PCT = 24          # logo width as % of image width
 LOGO_OPACITY = 0.9          # 0.0 - 1.0
 EDGE_PADDING_PCT = 3        # padding from image edges as %
 GRID_COLS = 5               # grid divisions for region scoring
@@ -106,8 +106,8 @@ def find_best_region(img, bg_mask):
             })
 
     if not candidates:
-        # Fallback: bottom-right corner
-        return w * 0.85, h * 0.90, True
+        # Fallback: top-center
+        return w * 0.50, h * 0.10, True
 
     # Score candidates
     # Prefer: high bg_ratio, edges/corners, good contrast potential
@@ -118,22 +118,25 @@ def find_best_region(img, bg_mask):
         # Prefer regions with more background
         bg_score = c["bg_ratio"]
 
-        # Prefer edges and corners (further from center)
-        dx = abs(c["cx"] / w - 0.5) * 2  # 0 at center, 1 at edge
-        dy = abs(c["cy"] / h - 0.5) * 2
-        edge_score = (dx + dy) / 2
+        # Prefer top half (like the manual stamper default: top-center)
+        top_score = 1.0 - (c["cy"] / h)
 
-        # Prefer bottom half slightly (conventional logo placement)
-        bottom_score = c["cy"] / h
+        # Prefer horizontally centered
+        center_x_score = 1.0 - abs(c["cx"] / w - 0.5) * 2  # 1 at center, 0 at edge
+
+        # Prefer edges vertically (top/bottom rows)
+        dy = abs(c["cy"] / h - 0.5) * 2  # 0 at center, 1 at edge
+        edge_y_score = dy
 
         # Contrast score: very dark or very light regions are good
         # (more room for contrast with either logo)
         contrast_score = abs(c["brightness"] - 128) / 128
 
         score = (bg_score * 3.0 +
-                 edge_score * 2.0 +
-                 bottom_score * 1.0 +
-                 contrast_score * 1.0)
+                 contrast_score * 3.0 +
+                 top_score * 2.0 +
+                 center_x_score * 1.5 +
+                 edge_y_score * 1.0)
 
         if score > best_score:
             best_score = score
