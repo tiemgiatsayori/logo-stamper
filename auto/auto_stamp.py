@@ -17,7 +17,7 @@ Requirements:
 import os
 import sys
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 from rembg import remove
 
 # --- Config ---
