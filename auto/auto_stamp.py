@@ -25,8 +25,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_DIR = os.path.join(SCRIPT_DIR, "input")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
-LOGO_WHITE = os.path.join(PROJECT_DIR, "images", "ohara-white.png")
-LOGO_BLACK = os.path.join(PROJECT_DIR, "images", "ohara-black.png")
+LOGO_WHITE = os.path.join(SCRIPT_DIR, "images", "ohara-white.png")
+LOGO_BLACK = os.path.join(SCRIPT_DIR, "images", "ohara-black.png")
 
 LOGO_SIZE_PCT = 18          # logo width as % of image width
 LOGO_OPACITY = 0.9          # 0.0 - 1.0
