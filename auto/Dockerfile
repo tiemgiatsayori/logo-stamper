@@ -9,13 +9,11 @@ RUN apt-get update && \
 
 # Install Python deps first (for Docker layer caching)
 COPY requirements.txt .
-RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
-
-# Pre-download the U2-Net model so first run is instant
-RUN python -c "from rembg import new_session; new_session('u2net')"
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app files
 COPY app.py .
+COPY index.html .
 COPY images/ images/
 
 EXPOSE 7860
