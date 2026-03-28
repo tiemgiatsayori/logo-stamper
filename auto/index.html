@@ -187,13 +187,13 @@
 
   .start-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* AI toggle switch */
+  /* AI toggle checkbox */
   .ai-toggle-row {
     width: 100%;
     max-width: 700px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 14px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -204,6 +204,13 @@
     transition: border-color 0.2s;
   }
   .ai-toggle-row:hover { border-color: var(--accent); }
+  .ai-toggle-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
   .ai-toggle-label {
     display: flex;
     flex-direction: column;
@@ -221,40 +228,6 @@
     font-size: 0.65rem;
     color: var(--muted);
     letter-spacing: 0.5px;
-  }
-  .toggle-switch {
-    position: relative;
-    width: 48px;
-    height: 26px;
-    flex-shrink: 0;
-  }
-  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
-  .toggle-track {
-    position: absolute;
-    inset: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    transition: all 0.25s ease;
-  }
-  .toggle-track::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    background: var(--muted);
-    border-radius: 50%;
-    transition: all 0.25s ease;
-  }
-  .toggle-switch input:checked + .toggle-track {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .toggle-switch input:checked + .toggle-track::after {
-    left: 25px;
-    background: #1a0a10;
   }
 
   /* EDITOR SCREEN */
@@ -491,6 +464,75 @@
   @keyframes autoPulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
+  }
+
+  /* AI review modal */
+  .ai-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,6,8,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  .ai-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+  }
+  .ai-modal .modal-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .ai-modal h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .ai-modal p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .ai-modal .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ai-modal .btn-modal {
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .ai-modal .btn-export {
+    background: var(--accent);
+    color: #1a0a10;
+  }
+  .ai-modal .btn-export:hover {
+    background: #fde6ee;
+    transform: translateY(-1px);
+  }
+  .ai-modal .btn-review {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  .ai-modal .btn-review:hover {
+    border-color: var(--accent);
+    background: rgba(240,173,195,0.08);
   }
 
   .zoom-indicator {
@@ -966,14 +1008,11 @@
   </details>
 
   <div class="ai-toggle-row" id="ai-toggle-row">
+    <input type="checkbox" id="ai-toggle" checked>
     <div class="ai-toggle-label">
       <span class="label-main">✨ AI Tự Đặt Logo</span>
       <span class="label-sub">AI phân tích ảnh và đặt logo vào vị trí tốt nhất</span>
     </div>
-    <label class="toggle-switch">
-      <input type="checkbox" id="ai-toggle" checked>
-      <span class="toggle-track"></span>
-    </label>
   </div>
 
   <button class="start-btn" id="start-btn" disabled>BẮT ĐẦU →</button>
@@ -1102,6 +1141,19 @@
   <button class="restart-btn" onclick="location.reload()">Làm lại từ đầu</button>
 </div>
 
+<!-- AI REVIEW MODAL -->
+<div id="ai-review-modal" class="ai-modal-overlay" style="display:none">
+  <div class="ai-modal">
+    <div class="modal-icon">✨</div>
+    <h3>AI đã đặt xong!</h3>
+    <p>Tất cả <strong id="modal-count"></strong> ảnh đã được AI đặt logo tự động.<br>Bạn muốn xuất ảnh luôn hay xem lại từ đầu?</p>
+    <div class="modal-actions">
+      <button class="btn-modal btn-export" id="modal-export-btn">🌸 Xuất ảnh ngay</button>
+      <button class="btn-modal btn-review" id="modal-review-btn">👁 Xem lại từ đầu</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // State
   let imageFiles   = [];
@@ -1134,6 +1186,7 @@
   // Per-image edit state: stores logo position/size/opacity/logo choice per image index
   const imageEditState = {};
   let useAI = true;
+  let aiAutoAdvancing = false; // true while AI is auto-saving through images
 
   function saveEditState(index) {
     imageEditState[index] = {
@@ -1603,10 +1656,7 @@
     editorScreen.style.display = 'none';
     doneScreen.style.display   = 'flex';
     document.getElementById('done-summary').textContent = `${results.length} ảnh đã được xử lý`;
-    // Show share button label on iOS (Web Share API), download label elsewhere
-    const testFiles = results.length ? [new File([results[0].blob], 'test.jpg', { type: 'image/jpeg' })] : [];
-    const useShare = testFiles.length && navigator.canShare && navigator.canShare({ files: testFiles });
-    document.getElementById('dl-all-btn').textContent = useShare ? 'Chia sẻ tất cả ảnh' : 'Tải tất cả ảnh';
+    document.getElementById('dl-all-btn').textContent = 'Tải tất cả ảnh';
 
     const list = document.getElementById('download-list');
     list.innerHTML = '';
@@ -1639,23 +1689,9 @@
     });
 
     document.getElementById('dl-all-btn').onclick = () => {
-      // On iOS, programmatic a.click() in setTimeout is blocked (not a user gesture).
-      // Use Web Share API with files instead — supported on iOS Safari 15.1+ and Chrome iOS.
-      const files = results.map(r => new File([r.blob], 'stamped_' + r.name, { type: r.blob.type }));
-      if (navigator.canShare && navigator.canShare({ files })) {
-        navigator.share({ files }).catch(err => {
-          // User cancelled or share failed — fall back to individual downloads
-          if (err.name !== 'AbortError') {
-            results.forEach((r, i) => {
-              setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
-            });
-          }
-        });
-      } else {
-        results.forEach((r, i) => {
-          setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
-        });
-      }
+      results.forEach((r, i) => {
+        setTimeout(() => downloadBlob(r.blob, 'stamped_' + r.name), i * 300);
+      });
     };
   }
 
@@ -1698,14 +1734,53 @@
         logoY = data.y;
         autoSelectLogo(data.use_white);
         drawLogo();
+
+        // Auto-save and advance to next image
+        aiAutoAdvancing = true;
+        const blob = await renderToCanvas();
+        const name = imageFiles[index].name;
+        const ri = results.findIndex(r => r.name === name);
+        if (ri !== -1) results[ri] = { name, blob };
+        else results.push({ name, blob });
+        saveEditState(index);
+
+        if (index + 1 < imageFiles.length) {
+          loadImage(index + 1);
+        } else {
+          // All images done — show review modal
+          aiAutoAdvancing = false;
+          autoLoadingEl.style.display = 'none';
+          showAIReviewModal();
+          return;
+        }
       }
     } catch (e) {
       console.error('Auto-placement failed:', e);
-      // Keep the default 'tc' position
+      aiAutoAdvancing = false;
     } finally {
-      autoLoadingEl.style.display = 'none';
+      if (!aiAutoAdvancing) autoLoadingEl.style.display = 'none';
     }
   }
+
+  // ── AI Review Modal ───────────────────────────────────────────
+  const aiReviewModal = document.getElementById('ai-review-modal');
+
+  function showAIReviewModal() {
+    document.getElementById('modal-count').textContent = imageFiles.length;
+    aiReviewModal.style.display = 'flex';
+  }
+
+  document.getElementById('modal-export-btn').addEventListener('click', () => {
+    aiReviewModal.style.display = 'none';
+    showDone();
+  });
+
+  document.getElementById('modal-review-btn').addEventListener('click', () => {
+    aiReviewModal.style.display = 'none';
+    // Switch to manual review mode — AI already placed everything
+    useAI = false;
+    loadImage(0);
+  });
 
 </script>
 </body>
