@@ -1714,7 +1714,7 @@
   }
 
   async function autoPlace(index) {
-    // Set temporary default while API is loading
+    // Set default position as fallback
     setPos('tc');
     autoLoadingEl.style.display = 'flex';
 
@@ -1728,37 +1728,43 @@
         body: formData,
       });
 
-      if (response.ok && currentIndex === index) {
+      if (currentIndex !== index) return;
+
+      if (response.ok) {
         const data = await response.json();
         logoX = data.x;
         logoY = data.y;
         autoSelectLogo(data.use_white);
         drawLogo();
-
-        // Auto-save and advance to next image
-        aiAutoAdvancing = true;
-        const blob = await renderToCanvas();
-        const name = imageFiles[index].name;
-        const ri = results.findIndex(r => r.name === name);
-        if (ri !== -1) results[ri] = { name, blob };
-        else results.push({ name, blob });
-        saveEditState(index);
-
-        if (index + 1 < imageFiles.length) {
-          loadImage(index + 1);
-        } else {
-          // All images done — show review modal
-          aiAutoAdvancing = false;
-          autoLoadingEl.style.display = 'none';
-          showAIReviewModal();
-          return;
-        }
+      } else {
+        console.warn(`AI position failed for image ${index}, using default position`);
       }
     } catch (e) {
-      console.error('Auto-placement failed:', e);
+      console.warn(`AI request error for image ${index}, using default position:`, e);
+    }
+
+    // Always save and advance (whether AI succeeded or fell back to default)
+    if (currentIndex !== index) return;
+    aiAutoAdvancing = true;
+    try {
+      const blob = await renderToCanvas();
+      const name = imageFiles[index].name;
+      const ri = results.findIndex(r => r.name === name);
+      if (ri !== -1) results[ri] = { name, blob };
+      else results.push({ name, blob });
+      saveEditState(index);
+
+      if (index + 1 < imageFiles.length) {
+        loadImage(index + 1);
+      } else {
+        aiAutoAdvancing = false;
+        autoLoadingEl.style.display = 'none';
+        showAIReviewModal();
+      }
+    } catch (e) {
+      console.error('Render/save failed:', e);
       aiAutoAdvancing = false;
-    } finally {
-      if (!aiAutoAdvancing) autoLoadingEl.style.display = 'none';
+      autoLoadingEl.style.display = 'none';
     }
   }
 
