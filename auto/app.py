@@ -18,7 +18,7 @@ LOGO_WHITE_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-white.png")
 LOGO_BLACK_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-black.png")
 
 LOGO_SIZE_PCT = 24
-LOGO_OPACITY = 0.9
+LOGO_OPACITY = 1.0
 EDGE_PADDING_PCT = 3
 GRID_COLS = 7
 GRID_ROWS = 7
@@ -376,7 +376,7 @@ with gr.Blocks(
                     label="Kích thước logo (%)",
                 )
                 opacity_slider = gr.Slider(
-                    minimum=10, maximum=100, value=90, step=5,
+                    minimum=10, maximum=100, value=100, step=5,
                     label="Độ trong suốt (%)",
                 )
             run_btn = gr.Button("✿  BẮT ĐẦU  ✿", variant="primary", size="lg")
