@@ -1,0 +1,7 @@
+services:
+  stamper:
+    build: .
+    image: ohara-stamper
+    ports:
+      - "7860:7860"
+    restart: unless-stopped
