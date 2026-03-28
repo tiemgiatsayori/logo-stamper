@@ -6,10 +6,12 @@ Serves the manual stamper UI with AI-powered auto-placement.
 import os
 import numpy as np
 from PIL import Image
-from rembg import remove
+from rembg import remove, new_session
 from flask import Flask, request, jsonify, send_from_directory
 
 # --- Config ---
+REMBG_MODEL = "birefnet-general"
+rembg_session = new_session(REMBG_MODEL)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGO_WHITE_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-white.png")
 LOGO_BLACK_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-black.png")
@@ -28,7 +30,7 @@ app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB max upload
 
 def get_background_mask(img):
     """Use rembg to detect the subject, return background mask."""
-    result = remove(img, only_mask=True)
+    result = remove(img, only_mask=True, session=rembg_session)
     mask = np.array(result)
     return 255 - mask
 

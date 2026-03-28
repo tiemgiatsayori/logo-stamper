@@ -18,9 +18,11 @@ import os
 import sys
 import numpy as np
 from PIL import Image
-from rembg import remove
+from rembg import remove, new_session
 
 # --- Config ---
+REMBG_MODEL = "birefnet-general"
+rembg_session = new_session(REMBG_MODEL)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_DIR = os.path.join(SCRIPT_DIR, "input")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
@@ -40,7 +42,7 @@ SUPPORTED_EXT = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff"}
 def get_background_mask(img):
     """Use rembg to detect the subject, return background mask as numpy array."""
     # rembg returns image with alpha channel where foreground is opaque
-    result = remove(img, only_mask=True)
+    result = remove(img, only_mask=True, session=rembg_session)
     mask = np.array(result)
     # mask: 255 = foreground (bouquet), 0 = background
     # invert: we want background = 255
