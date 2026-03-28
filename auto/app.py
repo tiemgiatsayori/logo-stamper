@@ -10,7 +10,7 @@ from rembg import remove, new_session
 from flask import Flask, request, jsonify, send_from_directory
 
 # --- Config ---
-REMBG_MODEL = "birefnet-general"
+REMBG_MODEL = "u2net"
 rembg_session = new_session(REMBG_MODEL)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGO_WHITE_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-white.png")
@@ -19,6 +19,7 @@ LOGO_BLACK_PATH = os.path.join(SCRIPT_DIR, "images", "ohara-black.png")
 EDGE_PADDING_PCT = 3
 GRID_COLS = 7
 GRID_ROWS = 7
+MAX_ANALYSIS_PX = 1024  # max dimension for AI analysis (saves RAM)
 
 # Pre-load logos (for aspect ratio reference)
 logo_white = Image.open(LOGO_WHITE_PATH).convert("RGBA")
@@ -149,6 +150,11 @@ def api_find_position():
 
     try:
         img = Image.open(file.stream).convert("RGB")
+        # Downscale for analysis to save RAM
+        w, h = img.size
+        if max(w, h) > MAX_ANALYSIS_PX:
+            ratio = MAX_ANALYSIS_PX / max(w, h)
+            img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
         x, y, use_white = find_best_position(img, size_pct)
         return jsonify({
             "x": round(x, 4),

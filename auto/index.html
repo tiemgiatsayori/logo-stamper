@@ -1713,14 +1713,33 @@
     if (idx !== -1) selectLogo(idx);
   }
 
+  function resizeForAI(file, maxPx) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const { width: w, height: h } = img;
+        if (Math.max(w, h) <= maxPx) { resolve(file); URL.revokeObjectURL(img.src); return; }
+        const ratio = maxPx / Math.max(w, h);
+        const nw = Math.round(w * ratio), nh = Math.round(h * ratio);
+        const c = document.createElement('canvas');
+        c.width = nw; c.height = nh;
+        c.getContext('2d').drawImage(img, 0, 0, nw, nh);
+        c.toBlob(blob => { URL.revokeObjectURL(img.src); resolve(blob); }, 'image/jpeg', 0.90);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   async function autoPlace(index) {
     // Set default position as fallback
     setPos('tc');
     autoLoadingEl.style.display = 'flex';
 
     try {
+      // Resize image client-side before uploading (saves bandwidth + server RAM)
+      const resizedBlob = await resizeForAI(imageFiles[index], 1024);
       const formData = new FormData();
-      formData.append('image', imageFiles[index]);
+      formData.append('image', resizedBlob, imageFiles[index].name);
       formData.append('size_pct', logoSizePct);
 
       const response = await fetch('/api/find-position', {
