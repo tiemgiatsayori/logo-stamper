@@ -5,8 +5,8 @@ __pycache__/
 .git/
 .gitignore
 HOW_TO_USE.md
-index.html
 auto_stamp.py
+app.py.bak
 run-windows.bat
 run-mac.command
 docker-compose.yml
