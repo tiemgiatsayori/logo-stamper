@@ -1,0 +1,13 @@
+input/
+output/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+HOW_TO_USE.md
+index.html
+auto_stamp.py
+run-windows.bat
+run-mac.command
+docker-compose.yml
+*.tar
